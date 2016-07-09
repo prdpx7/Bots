@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os
 import sys
 import re
@@ -5,24 +6,70 @@ import tweepy
 import json
 import urllib
 import random
-user_name = 'bill'      #user who will get reply from our bot
+import time
+user_name = 'USER'      #user who will get reply from our bot
 bot_name  = 'zuckXbot'  #our bot_name
-flag = False
+mflag = False   #mention flag
+print time.asctime(time.localtime())  #for cronjob logs
+
+urlfile = open("/home/zuck007/LocalGitHub/Bots/url.cache","a+")
+
 def xkcd():
-    global flag
-    img_url = json.loads(urllib.urlopen("http://xkcd.com/%d/info.0.json"%(random.randint(1,1690))).read())["img"];
-    urllib.urlretrieve("%s"%(img_url),'tweetimg.jpg')
-    flag = True
+    global urlfile
+    count = 10
+    while True and count != 0:
+        img_url = json.loads(urllib.urlopen("http://xkcd.com/%d/info.0.json"%(random.randint(1,1710))).read())["img"];
+        if img_url not in urlfile.read():
+            urlfile.write(img_url+"\n")
+            break
+        count -= 1
+
+    urllib.urlretrieve("%s"%(img_url),'./tweetimg.jpg')
     return '#XKCD'
 
-def chuck_norris_jokes():
-    return json.loads(urllib.urlopen("http://api.icndb.com/jokes/random?").read())["value"]["joke"]
+def hacker_news():
+    global urlfile
+    count = 10
+    tweet = ""
+    while True and count != 0:
+        post_id = json.loads(urllib.urlopen("https://hacker-news.firebaseio.com/v0/newstories.json").read())[random.randint(1,500)]
+        post = json.loads(urllib.urlopen("https://hacker-news.firebaseio.com/v0/item/%d.json?print=pretty"%post_id).read())
+        
+        if post["url"] not in urlfile.read():
+            urlfile.write(post["url"] + "\n")
+            tweet = post["title"] + " " + post["url"]
+            break
+        
+        count -= 1
+    
+    return tweet
 
+def chuck_norris_jokes():
+    return re.sub("\&quot\;",'"',json.loads(urllib.urlopen("http://api.icndb.com/jokes/random?").read())["value"]["joke"])
+
+
+"""
 def bill_meme():
-    global user_name,flag
-    urllib.urlretrieve('http://belikebill.azurewebsites.net/billgen-API.php?default=1&name=%s'%(user_name),'tweetimg.jpg' )
-    flag = True
+    global user_name
+    urllib.urlretrieve('http://belikebill.azurewebsites.net/billgen-API.php?default=1&name=%s'%(user_name),'./tweetimg.jpg' )
     return '#BeLike%s'%(user_name)
+"""
+
+def _9gag_memes():
+    count = 10
+    global urlfile
+    while True and count != 0:
+        json_src = json.loads(urllib.urlopen("http://infinigag.k3min.eu").read())
+        num = random.randint(0,9)
+
+        img_url = json_src["data"][num]["images"]["large"] 
+        if img_url not in urlfile.read() and json_src["data"][num]["media"] is False:
+            urlfile.write(img_url+"\n")
+            break
+        count -= 1
+
+    urllib.urlretrieve(img_url,"./tweetimg.jpg")
+    return "#9gag "+json_src["data"][num]["caption"]
 
 CONSUMER_KEY = os.getenv('TWITTER_CONSUMER_KEY')
 CONSUMER_SECRET = os.getenv('TWITTER_CONSUMER_SECRET')
@@ -36,6 +83,7 @@ auth.set_access_token(ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
 api = tweepy.API(auth)
 
 #Status Object Contents
+
 """
 mentions = api.mentions_timeline()
 print json.dumps(mentions[0]._json, sort_keys=True, indent=4)
@@ -101,35 +149,55 @@ print json.dumps(mentions[0]._json, sort_keys=True, indent=4)
 }
 
 """
+
+def check():
+    global urlfile
+    #every 7th post will be from xkcd 
+    #every 13th post will be from 9gag
+    # rest all from hackernews newstories
+    url_list = urlfile.read().split("\n")
+    
+    # excluding last newline
+    z = len(url_list) - 2
+    
+    if z % 13 == 0:
+        return  _9gag_memes()
+    elif z % 7 == 0:
+        return xkcd()
+    else:
+        return hacker_news()
+
 def main():
-    global user_name,bot_name,flag
+    global user_name,bot_name,mflag
     mentions = api.mentions_timeline()
     for post in mentions:
         user_name = post._json["user"]["screen_name"]
         bot_name = post._json["in_reply_to_screen_name"]
         if post.favorited == False and user_name != bot_name:
+            mflag = True
             post_id = post.id
+            
             print post_id,user_name,post.text
+            
             if bot_name == user_name:
                 continue
-            if flag:
-                os.system('rm tweetimg.jpg')
-                flag = False
-            ch = random.randint(1,3)
-            if ch == 1:
-                put_post = xkcd()
-            elif ch == 2:
-                put_post = bill_meme()
-            else:
-                put_post = chuck_norris_jokes()
-            
+            put_post = chuck_norris_jokes()
+
             reply_post = "@%s %s"%(user_name,put_post)
             
-            if put_post[0] != "#":
-                api.update_status(reply_post[:140],post_id)
-            else:
-                api.update_with_media('./tweetimg.jpg',reply_post[:140],post_id)
-            api.create_favorite(post_id)    
+            api.update_status(reply_post[:140],post_id)
+            
+            api.create_favorite(post_id)
+            
+    if not mflag:
+        put_post = check()
+        print put_post
+        if put_post[0] != "#":
+            api.update_status(put_post[:140])
+        else:
+            api.update_with_media('./tweetimg.jpg',put_post[:140])
+            os.system('rm ./tweetimg.jpg')
 
 if __name__ == '__main__':
     main()
+    urlfile.close()
