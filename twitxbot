@@ -34,10 +34,15 @@ def hacker_news():
     while True and count != 0:
         post_id = json.loads(urllib.urlopen("https://hacker-news.firebaseio.com/v0/newstories.json").read())[random.randint(1,500)]
         post = json.loads(urllib.urlopen("https://hacker-news.firebaseio.com/v0/item/%d.json?print=pretty"%post_id).read())
-        
+        if urllib.urlopen(post["url"]).getcode() != 200:
+                continue
         if post["url"] not in urlfile.read():
             urlfile.write(post["url"] + "\n")
-            tweet = post["title"] + " " + post["url"]
+            tlen = len(post["title"] + " " + post["url"])
+            if tlen > 139:
+                post["title"] = post["title"][:-tlen+139]
+
+            tweet = post["title"] + " "+ post["url"]
             break
         
         count -= 1
