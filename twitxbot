@@ -13,13 +13,14 @@ mflag = False   #mention flag
 print time.asctime(time.localtime())  #for cronjob logs
 
 urlfile = open("/home/zuck007/LocalGitHub/Bots/url.cache","a+")
+urlfile_content = urlfile.read()
 
 def xkcd():
-    global urlfile
+    global urlfile, urlfile_content
     count = 10
     while True and count != 0:
         img_url = json.loads(urllib.urlopen("http://xkcd.com/%d/info.0.json"%(random.randint(1,1710))).read())["img"];
-        if img_url not in urlfile.read():
+        if img_url not in urlfile_content:
             urlfile.write(img_url+"\n")
             break
         count -= 1
@@ -28,7 +29,9 @@ def xkcd():
     return '#XKCD'
 
 def hacker_news():
-    global urlfile
+    BITLY_TOKEN = os.getenv("BITLY_ACCESS_TOKEN")
+    print BITLY_TOKEN
+    global urlfile, urlfile_content
     count = 10
     tweet = ""
     while True and count != 0:
@@ -36,17 +39,14 @@ def hacker_news():
         post = json.loads(urllib.urlopen("https://hacker-news.firebaseio.com/v0/item/%d.json?print=pretty"%post_id).read())
         if urllib.urlopen(post["url"]).getcode() != 200:
                 continue
-        if post["url"] not in urlfile.read():
-            urlfile.write(post["url"] + "\n")
-            tlen = len(post["title"] + " " + post["url"])
-            if tlen > 139:
-                post["title"] = post["title"][:-tlen+139]
-
+        if post["url"] not in urlfile_content:
+            post["url"] = urllib.urlopen("https://api-ssl.bitly.com/v3/shorten?access_token=%s&longUrl=%s&format=txt"%(BITLY_TOKEN,post["url"])).read()
+            urlfile.write(post["url"])
             tweet = post["title"] + " "+ post["url"]
             break
-        
+
         count -= 1
-    
+
     return tweet
 
 def chuck_norris_jokes():
@@ -67,7 +67,7 @@ def _9gag_memes():
         json_src = json.loads(urllib.urlopen("http://infinigag.k3min.eu").read())
         num = random.randint(0,9)
 
-        img_url = json_src["data"][num]["images"]["large"] 
+        img_url = json_src["data"][num]["images"]["large"]
         if img_url not in urlfile.read() and json_src["data"][num]["media"] is False:
             urlfile.write(img_url+"\n")
             break
@@ -93,62 +93,62 @@ api = tweepy.API(auth)
 mentions = api.mentions_timeline()
 print json.dumps(mentions[0]._json, sort_keys=True, indent=4)
 
-{ 
-    "created_at": "Sat Jun 11 10:21:42 +0000 2016", 
+{
+    "created_at": "Sat Jun 11 10:21:42 +0000 2016",
     "entities": {
-        "hashtags": [],  
-        "symbols": [], 
-        "urls": [], 
+        "hashtags": [],
+        "symbols": [],
+        "urls": [],
         "user_mentions": [
             {
-                "id": 741518031822544901, 
-                "id_str": "741518031822544901", 
+                "id": 741518031822544901,
+                "id_str": "741518031822544901",
                 "indices": [
-                    0, 
+                    0,
                     9
-                ], 
-                "name": "zuckbot", 
+                ],
+                "name": "zuckbot",
                 "screen_name": "zuckXbot"
             }
         ]
-    }, 
-     
-    "favorite_count": 0, 
-    "favorited": false, 
-    "geo": null, 
-    "id": 741576132793794561,  
-    "in_reply_to_screen_name": "zuckXbot", 
-    "in_reply_to_status_id": null, 
-    "in_reply_to_user_id": 741518031822544901, 
-    "is_quote_status": false, 
-    "lang": "en", 
-    "place": null,  
-    "retweet_count": 0, 
-    "retweeted": false, 
-    "source": "<a href=\"http://corebird.baedert.org\" rel=\"nofollow\">Corebird</a>", 
-    "text": "@zuckXbot bot testing one two three...? https://t.co/MwS226PSgA", 
-    "truncated": false, 
-    
+    },
+
+    "favorite_count": 0,
+    "favorited": false,
+    "geo": null,
+    "id": 741576132793794561,
+    "in_reply_to_screen_name": "zuckXbot",
+    "in_reply_to_status_id": null,
+    "in_reply_to_user_id": 741518031822544901,
+    "is_quote_status": false,
+    "lang": "en",
+    "place": null,
+    "retweet_count": 0,
+    "retweeted": false,
+    "source": "<a href=\"http://corebird.baedert.org\" rel=\"nofollow\">Corebird</a>",
+    "text": "@zuckXbot bot testing one two three...? https://t.co/MwS226PSgA",
+    "truncated": false,
+
     "user": {
-        "created_at": "Wed Dec 30 11:33:10 +0000 2009", 
-        "favourites_count": 58, 
-        "follow_request_sent": false, 
-        "followers_count": 32, 
-        "following": false, 
-        "friends_count": 112, 
-        "geo_enabled": true, 
-        "has_extended_profile": true, 
-        "id": 100475149, 
-        "lang": "en", 
-        "listed_count": 5, 
-        "location": "/dev/null", 
-        "name": "zuck_007",  
-        "protected": false, 
-        "screen_name": "zuck_007", 
-        "statuses_count": 904, 
-        "time_zone": "New Delhi", 
-        "url": "https://t.co/L7v8s97Wn6", 
-        "utc_offset": 19800, 
+        "created_at": "Wed Dec 30 11:33:10 +0000 2009",
+        "favourites_count": 58,
+        "follow_request_sent": false,
+        "followers_count": 32,
+        "following": false,
+        "friends_count": 112,
+        "geo_enabled": true,
+        "has_extended_profile": true,
+        "id": 100475149,
+        "lang": "en",
+        "listed_count": 5,
+        "location": "/dev/null",
+        "name": "zuck_007",
+        "protected": false,
+        "screen_name": "zuck_007",
+        "statuses_count": 904,
+        "time_zone": "New Delhi",
+        "url": "https://t.co/L7v8s97Wn6",
+        "utc_offset": 19800,
         "verified": false
     }
 }
@@ -157,14 +157,14 @@ print json.dumps(mentions[0]._json, sort_keys=True, indent=4)
 
 def check():
     global urlfile
-    #every 7th post will be from xkcd 
+    #every 7th post will be from xkcd
     #every 13th post will be from 9gag
     # rest all from hackernews newstories
     url_list = urlfile.read().split("\n")
-    
+
     # excluding last newline
     z = len(url_list) - 2
-    
+
     if z % 13 == 0:
         return  _9gag_memes()
     elif z % 7 == 0:
@@ -181,19 +181,19 @@ def main():
         if post.favorited == False and user_name != bot_name:
             mflag = True
             post_id = post.id
-            
+
             print post_id,user_name,post.text
-            
+
             if bot_name == user_name:
                 continue
             put_post = chuck_norris_jokes()
 
             reply_post = "@%s %s"%(user_name,put_post)
-            
+
             api.update_status(reply_post[:140],post_id)
-            
+
             api.create_favorite(post_id)
-            
+
     if not mflag:
         put_post = check()
         print put_post
