@@ -11,10 +11,8 @@ user_name = 'USER'      #user who will get reply from our bot
 bot_name  = 'zuckXbot'  #our bot_name
 mflag = False   #mention flag
 print time.asctime(time.localtime())  #for cronjob logs
-
 urlfile = open("/home/zuck007/LocalGitHub/Bots/url.cache","a+")
 urlfile_content = urlfile.read()
-
 def xkcd():
     global urlfile, urlfile_content
     count = 10
@@ -30,19 +28,21 @@ def xkcd():
 
 def hacker_news():
     BITLY_TOKEN = os.getenv("BITLY_ACCESS_TOKEN")
-    print BITLY_TOKEN
     global urlfile, urlfile_content
     count = 10
     tweet = ""
     while True and count != 0:
         post_id = json.loads(urllib.urlopen("https://hacker-news.firebaseio.com/v0/newstories.json").read())[random.randint(1,500)]
         post = json.loads(urllib.urlopen("https://hacker-news.firebaseio.com/v0/item/%d.json?print=pretty"%post_id).read())
+        post["url"] = urllib.urlopen("https://api-ssl.bitly.com/v3/shorten?access_token=%s&longUrl=%s&format=txt"%(BITLY_TOKEN,post["url"])).read()
+        
         if urllib.urlopen(post["url"]).getcode() != 200:
                 continue
         if post["url"] not in urlfile_content:
-            post["url"] = urllib.urlopen("https://api-ssl.bitly.com/v3/shorten?access_token=%s&longUrl=%s&format=txt"%(BITLY_TOKEN,post["url"])).read()
             urlfile.write(post["url"])
             tweet = post["title"] + " "+ post["url"]
+            if len(tweet) > 139:
+                tweet = post["title"][:139-len(tweet)] + " " + post["url"]
             break
 
         count -= 1
@@ -53,22 +53,22 @@ def chuck_norris_jokes():
     return re.sub("\&quot\;",'"',json.loads(urllib.urlopen("http://api.icndb.com/jokes/random?").read())["value"]["joke"])
 
 
-"""
+
 def bill_meme():
     global user_name
     urllib.urlretrieve('http://belikebill.azurewebsites.net/billgen-API.php?default=1&name=%s'%(user_name),'./tweetimg.jpg' )
     return '#BeLike%s'%(user_name)
-"""
+
 
 def _9gag_memes():
     count = 10
-    global urlfile
+    global urlfile, urlfile_content
     while True and count != 0:
         json_src = json.loads(urllib.urlopen("http://infinigag.k3min.eu").read())
         num = random.randint(0,9)
 
         img_url = json_src["data"][num]["images"]["large"]
-        if img_url not in urlfile.read() and json_src["data"][num]["media"] is False:
+        if img_url not in urlfile_content and json_src["data"][num]["media"] is False:
             urlfile.write(img_url+"\n")
             break
         count -= 1
@@ -154,13 +154,12 @@ print json.dumps(mentions[0]._json, sort_keys=True, indent=4)
 }
 
 """
-
 def check():
-    global urlfile
+    global urlfile, urlfile_content
     #every 7th post will be from xkcd
     #every 13th post will be from 9gag
     # rest all from hackernews newstories
-    url_list = urlfile.read().split("\n")
+    url_list = urlfile_content.split("\n")
 
     # excluding last newline
     z = len(url_list) - 2
