@@ -11,7 +11,7 @@ user_name = 'USER'      #user who will get reply from our bot
 bot_name  = 'zuckXbot'  #our bot_name
 mflag = False   #mention flag
 print time.asctime(time.localtime())  #for cronjob logs
-urlfile = open("/home/zuck007/LocalGitHub/Bots/url.cache","a+")
+urlfile = open("./url.cache","a+")
 urlfile_content = urlfile.read()
 def xkcd():
     global urlfile, urlfile_content
@@ -163,10 +163,7 @@ def check():
 
     # excluding last newline
     z = len(url_list) - 2
-
-    if z % 13 == 0:
-        return  _9gag_memes()
-    elif z % 7 == 0:
+    if z % 7 == 0:
         return xkcd()
     else:
         return hacker_news()
