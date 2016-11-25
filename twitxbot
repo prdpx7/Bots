@@ -11,13 +11,14 @@ user_name = 'USER'      #user who will get reply from our bot
 bot_name  = 'zuckXbot'  #our bot_name
 mflag = False   #mention flag
 print time.asctime(time.localtime())  #for cronjob logs
-urlfile = open("./url.cache","a+")
+urlfile = open("url.cache","a+")
 urlfile_content = urlfile.read()
+
 def xkcd():
     global urlfile, urlfile_content
     count = 10
     while True and count != 0:
-        img_url = json.loads(urllib.urlopen("http://xkcd.com/%d/info.0.json"%(random.randint(1,1710))).read())["img"];
+        img_url = json.loads(urllib.urlopen("http://xkcd.com/%d/info.0.json"%(random.randint(1,1764))).read())["img"];
         if img_url not in urlfile_content:
             urlfile.write(img_url+"\n")
             break
@@ -54,28 +55,6 @@ def chuck_norris_jokes():
 
 
 
-def bill_meme():
-    global user_name
-    urllib.urlretrieve('http://belikebill.azurewebsites.net/billgen-API.php?default=1&name=%s'%(user_name),'./tweetimg.jpg' )
-    return '#BeLike%s'%(user_name)
-
-
-def _9gag_memes():
-    count = 10
-    global urlfile, urlfile_content
-    while True and count != 0:
-        json_src = json.loads(urllib.urlopen("http://infinigag.k3min.eu").read())
-        num = random.randint(0,9)
-
-        img_url = json_src["data"][num]["images"]["large"]
-        if img_url not in urlfile_content and json_src["data"][num]["media"] is False:
-            urlfile.write(img_url+"\n")
-            break
-        count -= 1
-
-    urllib.urlretrieve(img_url,"./tweetimg.jpg")
-    return "#9gag "+json_src["data"][num]["caption"]
-
 CONSUMER_KEY = os.getenv('TWITTER_CONSUMER_KEY')
 CONSUMER_SECRET = os.getenv('TWITTER_CONSUMER_SECRET')
 ACCESS_TOKEN = os.getenv('TWITTER_ACCESS_TOKEN')
@@ -87,83 +66,14 @@ auth.set_access_token(ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
 
 api = tweepy.API(auth)
 
-#Status Object Contents
-
-"""
-mentions = api.mentions_timeline()
-print json.dumps(mentions[0]._json, sort_keys=True, indent=4)
-
-{
-    "created_at": "Sat Jun 11 10:21:42 +0000 2016",
-    "entities": {
-        "hashtags": [],
-        "symbols": [],
-        "urls": [],
-        "user_mentions": [
-            {
-                "id": 741518031822544901,
-                "id_str": "741518031822544901",
-                "indices": [
-                    0,
-                    9
-                ],
-                "name": "zuckbot",
-                "screen_name": "zuckXbot"
-            }
-        ]
-    },
-
-    "favorite_count": 0,
-    "favorited": false,
-    "geo": null,
-    "id": 741576132793794561,
-    "in_reply_to_screen_name": "zuckXbot",
-    "in_reply_to_status_id": null,
-    "in_reply_to_user_id": 741518031822544901,
-    "is_quote_status": false,
-    "lang": "en",
-    "place": null,
-    "retweet_count": 0,
-    "retweeted": false,
-    "source": "<a href=\"http://corebird.baedert.org\" rel=\"nofollow\">Corebird</a>",
-    "text": "@zuckXbot bot testing one two three...? https://t.co/MwS226PSgA",
-    "truncated": false,
-
-    "user": {
-        "created_at": "Wed Dec 30 11:33:10 +0000 2009",
-        "favourites_count": 58,
-        "follow_request_sent": false,
-        "followers_count": 32,
-        "following": false,
-        "friends_count": 112,
-        "geo_enabled": true,
-        "has_extended_profile": true,
-        "id": 100475149,
-        "lang": "en",
-        "listed_count": 5,
-        "location": "/dev/null",
-        "name": "zuck_007",
-        "protected": false,
-        "screen_name": "zuck_007",
-        "statuses_count": 904,
-        "time_zone": "New Delhi",
-        "url": "https://t.co/L7v8s97Wn6",
-        "utc_offset": 19800,
-        "verified": false
-    }
-}
-
-"""
 def check():
     global urlfile, urlfile_content
-    #every 7th post will be from xkcd
-    #every 13th post will be from 9gag
-    # rest all from hackernews newstories
+    
     url_list = urlfile_content.split("\n")
 
     # excluding last newline
     z = len(url_list) - 2
-    if z % 7 == 0:
+    if z % 10 == 0:
         return xkcd()
     else:
         return hacker_news()
@@ -189,7 +99,8 @@ def main():
             api.update_status(reply_post[:140],post_id)
 
             api.create_favorite(post_id)
-
+    
+    #if no mention found in TL, tweet some random stuff
     if not mflag:
         put_post = check()
         print put_post

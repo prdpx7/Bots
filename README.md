@@ -1,5 +1,6 @@
 #### TwitterBot
 
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/zuck007/Bots/master/LICENSE)
   * Tweets from tech-world, xkcd and much more...
    [@zuckbot](http://twitter.com/zuckXbot)
   * Resources
@@ -15,5 +16,3 @@
     ```
   * Set crontab to run bot in every 15 minute
   ![snap](http://i.imgur.com/LcVkmj2.png?1)
-# License
-  [MIT License](https://raw.githubusercontent.com/zuck007/Bots/master/LICENSE)
