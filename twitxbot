@@ -7,7 +7,7 @@ import json
 import urllib
 import random
 import time
-user_name = 'USER'      #user who will get reply from our bot
+user_name = 'USER'      #user who will get reply
 bot_name  = 'zuckXbot'  #our bot_name
 mflag = False   #mention flag
 print time.asctime(time.localtime())  #for cronjob logs
@@ -73,7 +73,7 @@ def check():
 
     # excluding last newline
     z = len(url_list) - 2
-    if z % 10 == 0:
+    if z % 20 == 0:
         return xkcd()
     else:
         return hacker_news()
