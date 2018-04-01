@@ -8,7 +8,7 @@ import urllib
 import random
 import time
 user_name = 'USER'      #user who will get reply
-bot_name  = 'zuckXbot'  #our bot_name
+bot_name  = 'prdpXbot'  #our bot_name
 mflag = False   #mention flag
 print time.asctime(time.localtime())  #for cronjob logs
 urlfile = open("url.cache","a+")
@@ -96,7 +96,7 @@ def main():
 
             reply_post = "@%s %s"%(user_name,put_post)
 
-            api.update_status(reply_post[:140],post_id)
+            api.update_status(reply_post[:280],post_id)
 
             api.create_favorite(post_id)
     
@@ -105,7 +105,7 @@ def main():
         put_post = check()
         print put_post
         if put_post[0] != "#":
-            api.update_status(put_post[:140])
+            api.update_status(put_post[:280])
         else:
             api.update_with_media('./tweetimg.jpg',put_post[:140])
             os.system('rm ./tweetimg.jpg')

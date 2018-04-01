@@ -2,7 +2,7 @@
 
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/prdpx7/Bots/master/LICENSE)
   * Tweets from tech-world, xkcd and much more...
-   [@zuckbot](http://twitter.com/zuckXbot)
+   [@zuckbot](http://twitter.com/prdpXbot)
   * Resources
     * [API](http://docs.tweepy.org/en/v3.5.0/)
     * [Twitter Authentication](https://dev.twitter.com/oauth/overview)
